@@ -92,10 +92,13 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
-}
-
+  if(ticks < 0)
+    return;
+  
+  sema_down(&sema_);
+  thread_current()->unblocked_ticks = timer_ticks() + ticks;       
+  sema_up(&sema_);
+  List_of_blocked_threads();  
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
    turned on. */
 void
