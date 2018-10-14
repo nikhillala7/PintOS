@@ -35,6 +35,7 @@ static void real_time_delay (int64_t num, int32_t denom);
 void
 timer_init (void) 
 {
+  sema_init (&blocking,1);
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -95,10 +96,10 @@ timer_sleep (int64_t ticks)
   if(ticks < 0)
     return;
   
-  sema_down(&sema_);
+  sema_down(&blocking);
   thread_current()->unblocked_ticks = timer_ticks() + ticks;       
-  sema_up(&sema_);
-  List_of_blocked_threads();  
+  sema_up(&blocking);
+  list_of_blocked_threads();  
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
    turned on. */
 void
