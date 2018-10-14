@@ -33,7 +33,7 @@ static struct thread *idle_thread;
 
 /* Initial thread, the thread running init.c:main(). */
 static struct thread *initial_thread;
-
+`
 /* Lock used by allocate_tid(). */
 static struct lock tid_lock;
 
