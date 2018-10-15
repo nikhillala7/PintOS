@@ -582,3 +582,16 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+bool
+unblocked_ticks_less(const struct list_elem *thread1, const struct list_elem *thread2, void *aux UNUSED) {
+    return list_entry(thread1, struct thread, elem)->unblocked_ticks < list_entry(thread2, struct thread, elem)->unblocked_ticks;
+}
+
+
+//put current thread into the block list, #thread.c
+void put_thread_into_block_list(void){
+    //then when a thread is blocked, it will be put to the blocked queue based on its unblocked_ticks, add this function inside thread_block();
+    list_insert_ordered(&blocked_list, &thread_current()->elem, unblocked_ticks_less, NULL);
+    thread_block();
+}
