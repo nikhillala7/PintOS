@@ -29,6 +29,7 @@ static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
+static struct semaphore blocking;
 
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
@@ -96,7 +97,7 @@ timer_sleep (int64_t ticks)
   //nikhil lala implementation timer
   if(ticks < 0)
     return;
-  list_insert_ordered (struct list *list, struct list_elem *elem,
+  list_of_blocked_threads (struct list *list, struct list_elem *elem,
                      list_less_func *less, void *aux)
   sema_down(&blocking);
   
