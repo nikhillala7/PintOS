@@ -35,7 +35,7 @@ static void real_time_delay (int64_t num, int32_t denom);
 void
 timer_init (void) 
 {
-  sema_init (&blocking,1);
+  sema_init (&blocking,0);
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -93,13 +93,15 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
+  //nikhil lala implementation timer
   if(ticks < 0)
     return;
-  
+  list_insert_ordered (struct list *list, struct list_elem *elem,
+                     list_less_func *less, void *aux)
   sema_down(&blocking);
-  thread_current()->unblocked_ticks = timer_ticks() + ticks;       
-  sema_up(&blocking);
-  list_of_blocked_threads();  
+  
+  
+  
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
    turned on. */
 void
@@ -237,6 +239,11 @@ real_time_sleep (int64_t num, int32_t denom)
          sub-tick timing. */
       real_time_delay (num, denom); 
     }
+}
+  
+ bool
+priority_less(const struct list_elem *thread1, const struct list_elem *thread2, void *aux UNUSED) {
+  return list_entry(thread1, struct thread, elem)->priority > list_entry(thread2, struct thread, elem)->priority;
 }
 
 /* Busy-wait for approximately NUM/DENOM seconds. */
