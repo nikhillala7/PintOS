@@ -97,8 +97,9 @@ timer_sleep (int64_t ticks)
   //nikhil lala implementation timer
   if(ticks < 0)
     return;
-  list_of_blocked_threads (struct list *list, struct list_elem *elem,
-                     list_less_func *less, void *aux)
+  
+  thread_current()->unblocked_ticks = timer_ticks() + ticks;        //unblocked_ticks is the time when we should wake the threads up
+  list_of_blocked_threads();
   sema_down(&blocking);
   
   
@@ -178,6 +179,18 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
+  struct thread *thread_top;
+    //if it's a if condition not a while loop, we cannot pass the alarm-simultaneous test, but fine for the others
+    while (!list_empty(&blocked_list))  //make the blocked_list is not empty
+    {
+        thread_top = list_entry(list_front(&blocked_list), struct thread, elem);    //get the top elem of the blocked_list
+        //check if it’s the right time to wake up the top thread in timer_interrupt() and make sure the top thread is blocked
+        if (thread_top->unblocked_ticks > timer_ticks() || thread_top->status != THREAD_BLOCKED)
+            break;
+        list_pop_front(&blocked_list);      //remove the front element
+        thread_unblock(thread_top);
+    }
+  
   thread_tick ();
 }
 
