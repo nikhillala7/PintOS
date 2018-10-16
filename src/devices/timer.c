@@ -23,20 +23,19 @@ static int64_t ticks;
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
-
+static struct semaphore blocking;
 static intr_handler_func timer_interrupt;
 static bool too_many_loops (unsigned loops);
 static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
-static struct semaphore blocking;
 
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
 timer_init (void) 
 {
-  sema_init (&blocking,0);
+  sema_init (&blocking,1);
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -91,16 +90,15 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
   //nikhil lala implementation timer
   if(ticks < 0)
     return;
-  
-  thread_current()->unblocked_ticks = timer_ticks() + ticks;        //unblocked_ticks is the time when we should wake the threads up
-  list_of_blocked_threads();
   sema_down(&blocking);
+  thread_current()->unblocked_ticks = timer_ticks() + ticks;        //unblocked_ticks is the time when we should wake the threads up
+  sema_up(&blocking);
+  list_of_blocked_threads();       //put the thread whic
   
   
   
@@ -179,19 +177,9 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
-  struct thread *thread_top;
-    //if it's a if condition not a while loop, we cannot pass the alarm-simultaneous test, but fine for the others
-    while (!list_empty(&blocked_list))  //make the blocked_list is not empty
-    {
-        thread_top = list_entry(list_front(&blocked_list), struct thread, elem);    //get the top elem of the blocked_list
-        //check if it’s the right time to wake up the top thread in timer_interrupt() and make sure the top thread is blocked
-        if (thread_top->unblocked_ticks > timer_ticks() || thread_top->status != THREAD_BLOCKED)
-            break;
-        list_pop_front(&blocked_list);      //remove the front element
-        thread_unblock(thread_top);
-    }
+  wake_up_thread();
+  thread_tick();
   
-  thread_tick ();
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
