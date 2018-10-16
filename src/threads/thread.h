@@ -82,7 +82,6 @@ typedef int tid_t;
    blocked state is on a semaphore wait list. */
 struct thread
   {
-    int_64 unblocked_ticks;
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
     enum thread_status status;          /* Thread state. */
@@ -93,6 +92,7 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
+    int64_t unblocked_ticks;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -131,7 +131,7 @@ void thread_yield (void);
 typedef void thread_action_func (struct thread *t, void *aux);
 void thread_foreach (thread_action_func *, void *);
 bool list_less_for_unblock(const struct list_elem *thread1, const struct list_elem *thread2, void *aux UNUSED);
-
+void wake_up_thread(void);
 list_of_blocked_threads(void);
 int thread_get_priority (void);
 void thread_set_priority (int);
