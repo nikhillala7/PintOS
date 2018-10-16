@@ -132,7 +132,7 @@ typedef void thread_action_func (struct thread *t, void *aux);
 void thread_foreach (thread_action_func *, void *);
 bool list_less_for_unblock(const struct list_elem *thread1, const struct list_elem *thread2, void *aux UNUSED);
 void wake_up_thread(void);
-list_of_blocked_threads(void);
+void list_of_blocked_threads(void);
 int thread_get_priority (void);
 void thread_set_priority (int);
 
