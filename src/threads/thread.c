@@ -94,6 +94,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init (&blocked_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -590,6 +591,20 @@ list_less_for_unblock(const struct list_elem *thread1, const struct list_elem *t
     return list_entry(thread1, struct thread, elem)->unblocked_ticks < list_entry(thread2, struct thread, elem)->unblocked_ticks;
 }
 
+void wake_up_thread(void){
+
+    struct thread *thread_top;
+    //if it's a if condition not a while loop, we cannot pass the alarm-simultaneous test, but fine for the others
+    while (!list_empty(&blocked_list))  //make the blocked_list is not empty
+    {
+        thread_top = list_entry(list_front(&blocked_list), struct thread, elem);    //get the top elem of the blocked_list
+        //check if it’s the right time to wake up the top thread in timer_interrupt() and make sure the top thread is blocked
+        if (thread_top->unblocked_ticks > timer_ticks() || thread_top->status != THREAD_BLOCKED)
+            break;
+        list_pop_front(&blocked_list);      //remove the front element
+        thread_unblock(thread_top);
+    }
+}
 
 //put current thread into the block list, #thread.c
 void list_of_blocked_threads(void){
