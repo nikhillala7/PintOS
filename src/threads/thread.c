@@ -605,10 +605,12 @@ void wake_up_thread(void){
         thread_unblock(thread_top);
     }
 }
-
-//put current thread into the block list, #thread.c
 void list_of_blocked_threads(void){
+
     //then when a thread is blocked, it will be put to the blocked queue based on its unblocked_ticks, add this function inside thread_block();
     list_insert_ordered(&blocked_list, &thread_current()->elem, list_less_for_unblock, NULL);
+    enum intr_level old_level= intr_disable ();
     thread_block();
+	intr_set_level(old_level);
 }
+//put current thread into the block list, #thread.c
