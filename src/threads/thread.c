@@ -240,7 +240,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+	Priority_insert_list(t);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -586,6 +586,10 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+
+//timer implementation statrts here
+
+
 bool
 list_less_for_unblock(const struct list_elem *thread1, const struct list_elem *thread2, void *aux UNUSED) {
     return list_entry(thread1, struct thread, elem)->unblocked_ticks < list_entry(thread2, struct thread, elem)->unblocked_ticks;
@@ -613,4 +617,20 @@ void list_of_blocked_threads(void){
     thread_block();
 	intr_set_level(old_level);
 }
+
+//timer implementation ends here
+
+//compare priority for list_ordered priority
+
+bool compare_priority(const struct list_elem *t1, const struct list_elem *t2, void *aux UNUSED)
+{
+	return list_entry(t1, stuct thread, elem)->priority > list_entry(t2, struct thread, elem)-> priority;
+}
+
+void Priority_insert_list(void, threads)
+{
+	    list_insert_ordered(&ready_list, &threads->elem, compare_priority, NULL);
+
+}
+
 //put current thread into the block list, #thread.c
